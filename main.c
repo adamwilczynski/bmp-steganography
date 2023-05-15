@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <math.h>
 
 const int BMP_HEADER_BYTE_COUNT = 14;
 
@@ -29,9 +28,7 @@ str extract_file_header(FILE *file_pointer) {
     file_header.char_array[BMP_HEADER_BYTE_COUNT] = (char) real_header_size;
     for (int i = BMP_HEADER_BYTE_COUNT + 1; i < file_header.count; ++i) {
         file_header.char_array[i] = (char) fgetc(file_pointer);
-//        printf("%c|", file_header.char_array[i]);
     }
-//    puts("");
     file_header.char_array[file_header.count - 1] = '\0';
     return file_header;
 }
@@ -43,14 +40,14 @@ str char_to_binary(char c) {
     binary_encoding_before_offset.char_array[8] = '\0';
     itoa(c, binary_encoding_before_offset.char_array, 2);
 
-    int offset = 8 - strlen(binary_encoding_before_offset.char_array);
+    int offset = 8 - (int) strlen(binary_encoding_before_offset.char_array);
     if (offset != 0) {
         str binary_encoding_after_offset;
         binary_encoding_after_offset.count = 8 + 1;
         binary_encoding_after_offset.char_array = malloc(sizeof (char) * binary_encoding_before_offset.count);
         binary_encoding_after_offset.char_array[8] = '\0';
 
-        for (int i = strlen(binary_encoding_before_offset.char_array) - 1; i >= 0; --i) {
+        for (int i = (int) strlen(binary_encoding_before_offset.char_array) - 1; i >= 0; --i) {
             binary_encoding_after_offset.char_array[i + offset] = binary_encoding_before_offset.char_array[i];
             binary_encoding_after_offset.char_array[i] = '0';
         }
@@ -93,8 +90,7 @@ int main(int argc, char **argv) {
         encoded_file = fopen(argv[2], "wb");
 
         str file_header = extract_file_header(input_file_pointer);
-        printf("modulo: %i\n", ((unsigned char) file_header.char_array[0]) % 2);
-        printf("Header contents:\n%s\nHeader size: %i\n", file_header.char_array, file_header.count);
+        printf("Header contents:\n%s\nHeader size: %i\n\n", file_header.char_array, file_header.count);
 
 
         for (int i = 0; i < file_header.count; ++i) {
@@ -112,12 +108,10 @@ int main(int argc, char **argv) {
             for (int byte_index = 0; byte_index < 8; ++byte_index) {
                 unsigned char file_byte = fgetc(input_file_pointer);
                 if ((char_to_encode_binary.char_array[byte_index] == '1') & (file_byte % 2 == 0)) {
-                    printf("changed\n");
                     ++file_byte;
                     fwrite(&file_byte, sizeof (unsigned char), 1, encoded_file);
                     --bytes_to_write;
                 } else if (((char_to_encode_binary.char_array[byte_index]) == '0') & (file_byte % 2 == 1)) {
-                    printf("changed\n");
                     --file_byte;
                     fwrite(&file_byte, sizeof (unsigned char), 1, encoded_file);
                     --bytes_to_write;
@@ -140,7 +134,7 @@ int main(int argc, char **argv) {
     const short decode_argument_number = 1;
     if (argc == decode_argument_number + 1) {
         FILE *input_file_pointer = fopen(argv[1], "rb");
-        str file_header = extract_file_header(input_file_pointer);
+        extract_file_header(input_file_pointer);
 
         str message_size_binary;
         message_size_binary.count = 8 + 1;
@@ -148,7 +142,7 @@ int main(int argc, char **argv) {
         message_size_binary.char_array[message_size_binary.count - 1] = '\0';
 
         for (int i = 0; i < 8; ++i) {
-            unsigned char file_byte = fgetc(input_file_pointer);;
+            unsigned char file_byte = fgetc(input_file_pointer);
             message_size_binary.char_array[i] = (char) (file_byte % 2 + 48);
         }
         puts("Encoded message size:");
@@ -159,7 +153,7 @@ int main(int argc, char **argv) {
 
         for (int message_index = 0; message_index < message_size; ++message_index) {
             for (int i = 0; i < 8; ++i) {
-                unsigned char file_byte = fgetc(input_file_pointer);;
+                unsigned char file_byte = fgetc(input_file_pointer);
                 message_size_binary.char_array[i] = (char) (file_byte % 2 + 48);
             }
             printf("binary %s = character %c\n", message_size_binary.char_array, binary_str_to_char(message_size_binary));
